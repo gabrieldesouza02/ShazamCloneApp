@@ -15,6 +15,8 @@ api.use(express.json());
 //activates cors
 api.use(cors());
 
+let users=[];
+
 //expressjs format for requests
 api.get("/test", async(req,res)=>{
 let response = {
@@ -22,6 +24,50 @@ let response = {
 }
 
 res.send(response);
+
+})
+
+api.post("/accounts", async(req,res)=>{
+
+  let username = req.body.username;
+  users.push(username);
+
+  let response = {
+    "message":"success"
+
+  }
+
+  res.send(response);
+
+})
+
+
+api.get("/accounts/:username", async(req,res)=>{
+
+  let username = req.params.username;
+  console.log(username);
+
+  for(let i=0;i<users.length;i++){
+
+
+    if(users[i]== username) {
+      let response = {
+        "message":username
+      }
+    
+      
+      return res.send(response);
+    }
+
+  }
+
+  let response = {
+    "message":"not found"
+  }
+
+  res.status(404).send(response);
+
+  
 
 })
 
