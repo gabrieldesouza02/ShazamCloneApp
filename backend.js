@@ -4,6 +4,11 @@ let express = require ("express");
 //used when api is being tested on the same computer it was made on
 let cors = require("cors");
 
+//makes requests possible with shazam API
+var axios = require("axios").default;
+
+let secureInfo = require("./secureinfo.json");
+
 //creates new express object
 let api = express();
 
@@ -17,6 +22,39 @@ api.use(cors());
 let users = [];
 
 // ----------------------------------------------- ENDPOINTS -----------------------------------------------
+
+
+/*
+GET REQUEST
+
+
+*/
+
+api.get("/search",async(req,res)=>{
+
+  let searchterm = req.query.term;
+
+  var options = {
+    method: 'GET',
+    url: 'https://shazam.p.rapidapi.com/search',
+    params: {term: searchterm, locale: 'en-US', offset: '0', limit: '5'},
+    headers: {
+      'x-rapidapi-host': 'shazam.p.rapidapi.com',
+      'x-rapidapi-key': secureInfo.key
+    }
+  };
+  
+  axios.request(options).then(function (response) {
+    res.send(response.data);
+  }).catch(function (error) {
+    res.send(error)
+  });
+
+})
+
+
+
+
 
 //Test endpoint
 api.get("/test", async(req, res) => {
@@ -127,6 +165,9 @@ api.get("/accounts/email/:email", async(req,res)=>{
   res.status(404).send(response);
 
 })
+
+
+
 
 // ----------------------------------------------- ENDPOINTS -----------------------------------------------
 
