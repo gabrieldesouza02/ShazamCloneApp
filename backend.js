@@ -7,7 +7,12 @@ let cors = require("cors");
 //makes requests possible with shazam API
 var axios = require("axios").default;
 
+//imports keys from other file
 let secureInfo = require("./secureinfo.json");
+
+//encryption
+let jwt = require('jsonwebtoken');
+
 
 //creates new express object
 let api = express();
@@ -21,7 +26,81 @@ api.use(cors());
 //temporary users array
 let users = [];
 
+
+
+
+
 // ----------------------------------------------- ENDPOINTS -----------------------------------------------
+
+
+/*
+POST REQUEST
+ to add a search query to the accounts search history
+*/
+api.get("/search/history", async(req,res)=>{
+
+
+  let user = req.query.username;
+
+  for(let i=0;i<users.length;i++){
+    if(user == users[i].username){
+
+      let search = users[i].searchHistory;
+
+      let response = {
+        search
+      };
+      res.send(response);
+      return;
+    }
+  }
+
+  let response = {
+    "message":"user was not found"
+  };
+  res.status(404).send(response);
+
+  
+
+})
+
+
+
+
+/*
+POST REQUEST
+ to add a search query to the accounts search history
+*/
+api.post("/search", async(req,res)=>{
+
+
+  let search = req.body.search;
+  let user = req.body.username;
+
+  for(let i=0;i<users.length;i++){
+    if(user == users[i].username){
+      users[i].searchHistory.push(search);
+
+      let response = {
+        "message":"success"
+      };
+      res.send(response);
+      return;
+    }
+  }
+
+  let response = {
+    "message":"user was not found"
+  };
+  res.status(404).send(response);
+
+  
+
+})
+
+
+
+
 
 
 /*
@@ -89,7 +168,7 @@ api.post("/accounts", async(req,res)=>{
       let response ={
         "message":"email or username already exists"
       };
-      res.send(response);
+      res.status(400).send(response);
     }
 
   }
@@ -97,7 +176,8 @@ api.post("/accounts", async(req,res)=>{
   users.push({
     "username":username,
     "email":email,
-    "password":password
+    "password":password,
+    "searchHistory": []
   })
 
 
@@ -107,6 +187,9 @@ api.post("/accounts", async(req,res)=>{
   res.send(response);
 
 })
+
+
+
 
 /*
   GET: CHECK IF ACCOUNT EXISTS USING USERNAME
@@ -137,6 +220,10 @@ api.get("/accounts/username/:username", async(req,res)=>{
 
 })
 
+
+
+
+
 /*
   GET: CHECK IF ACCOUNT EXISTS USING EMAIL
 
@@ -165,6 +252,9 @@ api.get("/accounts/email/:email", async(req,res)=>{
   res.status(404).send(response);
 
 })
+
+
+
 
 
 
