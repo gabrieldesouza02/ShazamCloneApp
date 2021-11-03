@@ -2,4 +2,7 @@
 
 # NPM Modules 
 node_modules
+
+# Server information
 secureinfo.json
+users_db.json

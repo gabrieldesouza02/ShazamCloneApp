@@ -7,6 +7,10 @@ let cors = require("cors");
 //makes requests possible with shazam API
 var axios = require("axios").default;
 
+//local JSON based DB
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+
 //imports keys from other file
 let secureInfo = require("./secureinfo.json");
 
@@ -17,16 +21,18 @@ let jwt = require('jsonwebtoken');
 //creates new express object
 let api = express();
 
+//User list
+var users_db = low(new FileSync('users_db.json'));
+users_db.defaults({
+  user_list: []
+}).write();
+
+
 //converts server response from text to json object
 api.use(express.json());
 
 //activates cors
 api.use(cors());
-
-//temporary users array
-let users = [];
-
-
 
 
 
@@ -39,7 +45,7 @@ POST REQUEST
 */
 api.get("/search/history", async(req,res)=>{
 
-
+  let users = users_db.get("user_list").value();
   let user = req.query.username;
 
   for(let i=0;i<users.length;i++){
@@ -50,15 +56,14 @@ api.get("/search/history", async(req,res)=>{
       let response = {
         search
       };
-      res.send(response);
-      return;
+      return res.send(response);
     }
   }
 
   let response = {
     "message":"user was not found"
   };
-  res.status(404).send(response);
+  return res.status(404).send(response);
 
   
 
@@ -73,26 +78,26 @@ POST REQUEST
 */
 api.post("/search", async(req,res)=>{
 
-
+  let users = users_db.get("user_list").value();
   let search = req.body.search;
   let user = req.body.username;
 
   for(let i=0;i<users.length;i++){
     if(user == users[i].username){
       users[i].searchHistory.push(search);
+      users_db.set("user_list", users);
 
       let response = {
         "message":"success"
       };
-      res.send(response);
-      return;
+      return res.send(response);
     }
   }
 
   let response = {
     "message":"user was not found"
   };
-  res.status(404).send(response);
+  return res.status(404).send(response);
 
   
 
@@ -124,9 +129,9 @@ api.get("/search",async(req,res)=>{
   };
   
   axios.request(options).then(function (response) {
-    res.send(response.data);
+    return res.send(response.data);
   }).catch(function (error) {
-    res.send(error)
+    return res.send(error)
   });
 
 })
@@ -142,7 +147,7 @@ api.get("/test", async(req, res) => {
     "blahblah":27
   };
 
-  res.send(response);
+  return res.send(response);
 
 });
 
@@ -158,7 +163,7 @@ api.get("/test", async(req, res) => {
 */
 api.post("/accounts", async(req,res)=>{
 
-
+  let users = users_db.get("user_list").value();
   let username = req.body.username;
   let email = req.body.email;
   let password = req.body.password;
@@ -168,23 +173,23 @@ api.post("/accounts", async(req,res)=>{
       let response ={
         "message":"email or username already exists"
       };
-      res.status(400).send(response);
+      return res.status(400).send(response);
     }
 
   }
 
-  users.push({
+  users_db.get("user_list").push({
     "username":username,
     "email":email,
     "password":password,
     "searchHistory": []
-  })
+  }).write();
 
 
   let response = {
     "message":"success"
   };
-  res.send(response);
+  return res.send(response);
 
 })
 
@@ -198,6 +203,7 @@ api.post("/accounts", async(req,res)=>{
 */
 api.get("/accounts/username/:username", async(req,res)=>{
 
+  let users = users_db.get("user_list").value();
   let username = req.params.username;
 
   for(let i=0;i<users.length;i++){
@@ -216,7 +222,7 @@ api.get("/accounts/username/:username", async(req,res)=>{
   let response = {
     "message":"not found"
   };
-  res.status(404).send(response);
+  return res.status(404).send(response);
 
 })
 
@@ -231,6 +237,7 @@ api.get("/accounts/username/:username", async(req,res)=>{
 */
 api.get("/accounts/email/:email", async(req,res)=>{
 
+  let users = users_db.get("user_list").value();
   let email = req.params.email;
 
   for(let i=0;i<users.length;i++){
@@ -249,7 +256,7 @@ api.get("/accounts/email/:email", async(req,res)=>{
   let response = {
     "message":"not found"
   };
-  res.status(404).send(response);
+  return res.status(404).send(response);
 
 })
 
