@@ -39,34 +39,192 @@ api.use(cors());
 // ----------------------------------------------- ENDPOINTS -----------------------------------------------
 
 
+
 /*
-POST REQUEST
- to add a search query to the accounts search history
+  PUT: sign in a user if they exist and if the password matches the username
+
+  Params: username, password
+*/
+api.put("/accounts/signin", async(req,res)=>{
+
+  let users = users_db.get("user_list").value();
+
+  let username = req.body.username;
+  let password = req.body.password;
+
+  for(let i=0;i<users.length;i++){
+
+    if(users[i].username == username ) {
+
+      if( users[i].password != password){
+
+        let response = {
+          "message":"password incorrect"
+        };
+        return res.status(401).send(response);
+
+      } else {
+
+        var token = jwt.sign({ username: username }, secureInfo.jwtsecret);
+        let response = {
+          
+          "message": "success",
+          "token":token
+        };
+        return res.send(response);
+      }
+    }
+  }
+
+  let response = {
+    "message":"username does not exist"
+  };
+  return res.status(401).send(response);
+
+})
+
+
+
+
+
+
+
+/*
+  PUT: check if jwt token is correct
+
+  body:token
+
+*/
+api.put("/accounts/checktoken", async(req,res)=>{
+
+  
+
+  let token = req.body.token
+
+  // invalid token - synchronous
+  try {
+    let info = jwt.verify(token, secureInfo.jwtsecret);
+
+    let response = {
+      "message": info
+    };
+    return res.send(response);
+
+  } catch(err) {
+    let response = {
+      "message": "wrong token"
+    };
+    return res.status(401).send(response);
+  }
+
+
+})
+
+
+
+
+
+
+/*
+  PUT: change password
+
+  body:token
+
+*/
+api.put("/accounts/changepassword", async(req,res)=>{
+
+  let users = users_db.get("user_list").value();
+
+  let token = req.body.token
+  let oldPassword = req.body.oldpassword
+  let newPassword = req.body.newpassword
+
+  // invalid token - synchronous
+  try {
+
+    let info = jwt.verify(token, secureInfo.jwtsecret);
+
+    let username = info.username;
+
+
+    for(let i=0;i<users.length;i++){
+
+      if(users[i].username == username){
+
+        if(users[i].password == oldPassword) {
+
+          users[i].password = newPassword;
+
+          users_db.set("user_list", users).write();
+
+
+          let response = {
+            "message": "password changed succesfully"
+          };
+          return res.send(response);
+
+        }else{
+          let response = {
+            "message": "old password doesn't match"
+          };
+          return res.status(404).send(response);
+        }
+
+      }
+    }
+
+    
+    
+
+  } catch(err) {
+    let response = {
+      "message": "wrong token"
+    };
+    return res.status(401).send(response);
+  }
+
+
+})
+
+
+
+
+/*
+GET REQUEST
+ returns an accounts entire search history
 */
 api.get("/search/history", async(req,res)=>{
 
   let users = users_db.get("user_list").value();
-  let user = req.query.username;
+  // invalid token - synchronous]
+  let token = req.query.token;
 
-  for(let i=0;i<users.length;i++){
-    if(user == users[i].username){
+  try {
 
-      let search = users[i].searchHistory;
+    let info = jwt.verify(token, secureInfo.jwtsecret);
+    let username = info.username;
 
-      let response = {
-        search
-      };
-      return res.send(response);
+
+    for(let i=0;i<users.length;i++){
+      if(username == users[i].username){
+
+        let search = users[i].searchHistory;
+
+        let response = {
+          search
+        };
+        return res.send(response);
+      }
     }
-  }
 
-  let response = {
-    "message":"user was not found"
-  };
-  return res.status(404).send(response);
+  } catch(err) {
+    let response = {
+      "message": "wrong token"
+    };
+  return res.status(401).send(response);
 
-  
 
+}
 })
 
 
@@ -74,34 +232,68 @@ api.get("/search/history", async(req,res)=>{
 
 /*
 POST REQUEST
- to add a search query to the accounts search history
+ to add a search query to the accounts' search history
 */
 api.post("/search", async(req,res)=>{
 
   let users = users_db.get("user_list").value();
-  let search = req.body.search;
-  let user = req.body.username;
+  let searchTerm = req.body.search;
 
-  for(let i=0;i<users.length;i++){
-    if(user == users[i].username){
-      users[i].searchHistory.push(search);
-      users_db.set("user_list", users);
+  let token = req.body.token;
 
-      let response = {
-        "message":"success"
-      };
-      return res.send(response);
-    }
-  }
+  // invalid token - synchronous
+  try {
 
+        let info = jwt.verify(token, secureInfo.jwtsecret);
+
+        let username = info.username;
+
+        for(let i=0;i<users.length;i++){
+          if(username == users[i].username){
+
+
+            var options = {
+              method: 'GET',
+              url: 'https://shazam.p.rapidapi.com/search',
+              params: {term: searchTerm, locale: 'en-US', offset: '0', limit: '1'},
+              headers: {
+                'x-rapidapi-host': 'shazam.p.rapidapi.com',
+                'x-rapidapi-key': secureInfo.key
+              }
+            };
+              
+
+
+              axios.request(options).then(function (response) {
+
+                users[i].searchHistory.push({
+                  "searchterm":searchTerm,
+                  "result": response.data,
+                  "time": Date.now()
+                }
+                );
+              users_db.set("user_list", users).write();
+
+
+                return res.send(response.data);
+              }).catch(function (error) {
+                return res.send(error)
+              });
+          
+          }
+        }
+
+     } catch(err) {
   let response = {
-    "message":"user was not found"
+    "message": "wrong token"
   };
-  return res.status(404).send(response);
+  return res.status(401).send(response);
 
-  
+}
 
 })
+
+
 
 
 
@@ -110,7 +302,6 @@ api.post("/search", async(req,res)=>{
 
 /*
 GET REQUEST
-
 
 */
 
@@ -161,7 +352,7 @@ api.get("/test", async(req, res) => {
     "password":<string>
   }
 */
-api.post("/accounts", async(req,res)=>{
+api.post("/createaccount", async(req,res)=>{
 
   let users = users_db.get("user_list").value();
   let username = req.body.username;
