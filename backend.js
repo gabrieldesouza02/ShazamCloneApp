@@ -327,21 +327,6 @@ api.get("/search",async(req,res)=>{
 
 })
 
-
-
-
-
-//Test endpoint
-api.get("/test", async(req, res) => {
-
-  let response = {
-    "blahblah":27
-  };
-
-  return res.send(response);
-
-});
-
 /*
   POST: CREATE A NEW ACCOUNT
 
