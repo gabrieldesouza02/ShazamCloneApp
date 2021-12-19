@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Shazam Clone App</title>
-    <script src="index.js"></script>
+    <script src="login.js"></script>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -18,18 +18,18 @@
           <input type="text" id="username" name="username"><br><br>
           <label for="password">PASSWORD</label><br>
           <input type="password" id="password" name="password"><br><br>
-          <input type="button" value="LOG IN" onclick="">
+          <input type="button" value="LOG IN" onclick="logIn()">
         </form>
       </div>
       <div class="content-block" id="signup">
         <form>
-          <label for="username">USERNAME</label><br>
-          <input type="text" id="username" name="username"><br><br>
+          <label for="newusername">USERNAME</label><br>
+          <input type="text" id="newusername" name="newusername"><br><br>
           <label for="email">EMAIL</label><br>
           <input type="text" id="email" name="email"><br><br>
-          <label for="password">PASSWORD</label><br>
-          <input type="password" id="password" name="password"><br><br>
-          <input type="button" value="SIGN UP" onclick="">
+          <label for="newpassword">PASSWORD</label><br>
+          <input type="password" id="newpassword" name="newpassword"><br><br>
+          <input type="button" value="SIGN UP" onclick="signUp()">
         </form>
       </div>
     </div>
