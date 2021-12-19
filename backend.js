@@ -1,5 +1,6 @@
-//imports expressjs(expressjs is a framework facilitates REST api)
+//imports expressjs(expressjs is a framework which facilitates REST api)
 let express = require ("express");
+
 //Cors facilitates sending and receiving requests when they come from the same origin
 //used when api is being tested on the same computer it was made on
 let cors = require("cors");
@@ -7,14 +8,14 @@ let cors = require("cors");
 //makes requests possible with shazam API
 var axios = require("axios").default;
 
-//local JSON based DB
+//local JSON based Database
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
 
 //imports keys from other file
 let secureInfo = require("./secureinfo.json");
 
-//encryption
+//encryption, a jwt is a token used to verify a user
 let jwt = require('jsonwebtoken');
 
 
@@ -36,8 +37,7 @@ api.use(cors());
 
 
 
-// ----------------------------------------------- ENDPOINTS -----------------------------------------------
-
+// ----------------------------------------------- ENDPOINTS (8 in total, 1 shazam and the rest are account related) --------------
 
 
 /*
