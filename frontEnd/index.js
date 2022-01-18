@@ -5,7 +5,7 @@ async function getSearch(){
     let searchTerm = document.getElementById("search").value;
     console.log(searchTerm);
 
-    let token = window.localStorage.getItem("scaToken");
+    let token = localStorage.scaToken;
     
     let data = {
         "search":searchTerm,
@@ -23,5 +23,5 @@ async function getSearch(){
     let result = await response.json();
     
     console.log(token);
-    console.log(result.message);
+    console.log(result);
 }
