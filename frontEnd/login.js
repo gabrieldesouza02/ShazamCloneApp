@@ -1,5 +1,7 @@
 let url = "http://localhost:3000/";
 
+
+
 async function signUp(){
     let username = document.getElementById("newusername").value;
     let email = document.getElementById("email").value;
@@ -46,9 +48,10 @@ async function logIn(){
     let result = await response.json();
     
     console.log(result.message);
+    console.log(result.token);
 
     //Save JWT in local storage
-    localStorage.scaToken = result.token;
+    window.localStorage.setItem("scaToken",result.token);
     window.location.replace('index.html');   //Redirect to user
 
 
