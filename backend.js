@@ -1,49 +1,66 @@
-//imports expressjs(expressjs is a framework which facilitates REST api)
-let express = require ("express");
+/*
+  SHAZAM CLONE APP - BACKEND API
+  Written by: Gabriel De Souza 
 
-//Cors facilitates sending and receiving requests when they come from the same origin
-//used when api is being tested on the same computer it was made on
-let cors = require("cors");
+  Provided endpoints:
+    - 
 
-//makes requests possible with shazam API
-var axios = require("axios").default;
+  TODO:
+    - Add status codes in error messages
+    - Add input validation (maybe JOI)
+    - Look through endpoint TODOs. Fix responses.
+*/
 
-//local JSON based Database
-const low = require('lowdb')
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                                         *
+ *                                               DEPENDENCIES                                              *
+ *                                                                                                         *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
+
+let express = require ("express");                //imports expressjs(expressjs is a framework which facilitates REST api)
+let cors = require("cors");                       //Cors facilitates sending and receiving requests when they come from the same origin         
+                                                  //Used when api is being tested on the same computer it was made on
+var axios = require("axios").default;             //makes requests possible with shazam API
+const low = require('lowdb')                      //local JSON based Database
 const FileSync = require('lowdb/adapters/FileSync')
+let secureInfo = require("./secureinfo.json");    //imports keys from other file
+let jwt = require('jsonwebtoken');                //encryption, a jwt is a token used to verify a user
+let api = express();                              //creates new express object
 
-//imports keys from other file
-let secureInfo = require("./secureinfo.json");
-
-//encryption, a jwt is a token used to verify a user
-let jwt = require('jsonwebtoken');
-
-
-//creates new express object
-let api = express();
-
-//User list
+//User list ----------------------------------------- POTENTIALLY TEMPORARY
 var users_db = low(new FileSync('users_db.json'));
 users_db.defaults({
   user_list: []
 }).write();
 
 
-//converts server response from text to json object
-api.use(express.json());
-
-//activates cors
-api.use(cors());
+api.use(express.json());      //converts server response from text to json object
+api.use(cors());              //activates cors
 
 
 
-// ----------------------------------------------- ENDPOINTS (8 in total, 1 shazam and the rest are account related) --------------
-
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                                         *
+ *                                              REST ENDPOINTS                                             *
+ *                                 (8 ENDPOINTS IN TOTAL, 1 SHAZAM RELATED)                                *
+ *                                                                                                         *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 /*
-  PUT: sign in a user if they exist and if the password matches the username
+  [PUT] /accounts/signin
+  {
+    username: <string>,
+    password: <string>
+  }
+  --------- Response ---------
+  {
+    message: <string>,
+    token: <string>         // Depends on valid inputs
+  }
 
-  Params: username, password
+  Description: sign in a user if they exist and if the password matches the username
 */
 api.put("/accounts/signin", async(req,res)=>{
 
@@ -81,23 +98,25 @@ api.put("/accounts/signin", async(req,res)=>{
   };
   return res.status(401).send(response);
 
-})
+});
 
 
-
-
-
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-  PUT: check if jwt token is correct
+  [PUT] /accounts/checktoken
+  {
+    token: <string>
+  }
+  --------- Response ---------
+  {
+    message: <string>
+  }
 
-  body:token
-
+  Description: check if jwt token is correct
 */
 api.put("/accounts/checktoken", async(req,res)=>{
-
-  
 
   let token = req.body.token
 
@@ -105,6 +124,8 @@ api.put("/accounts/checktoken", async(req,res)=>{
   try {
     let info = jwt.verify(token, secureInfo.jwtsecret);
 
+
+    // TODO: Fix this, message should always be a string
     let response = {
       "message": info
     };
@@ -116,20 +137,25 @@ api.put("/accounts/checktoken", async(req,res)=>{
     };
     return res.status(401).send(response);
   }
+});
 
 
-})
-
-
-
-
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-  PUT: change password
+  [PUT] /accounts/changepassword
+  {
+    token: <string>,
+    oldpassword: <string>,
+    newpassword: <string>
+  }
+  --------- Response ---------
+  {
+    message: <string>
+  }
 
-  body:token
-
+  Description: change password to a newer one
 */
 api.put("/accounts/changepassword", async(req,res)=>{
 
@@ -173,9 +199,6 @@ api.put("/accounts/changepassword", async(req,res)=>{
       }
     }
 
-    
-    
-
   } catch(err) {
     let response = {
       "message": "wrong token"
@@ -183,15 +206,21 @@ api.put("/accounts/changepassword", async(req,res)=>{
     return res.status(401).send(response);
   }
 
+});
 
-})
 
-
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-GET REQUEST
- returns an accounts entire search history
+  [GET] /search/history?token=<string>
+  --------- Response ---------
+  {
+    message: <string>,
+    // TODO: Fix response
+  }
+
+  Description: returns an accounts entire search history
 */
 api.get("/search/history", async(req,res)=>{
 
@@ -221,18 +250,27 @@ api.get("/search/history", async(req,res)=>{
     let response = {
       "message": "wrong token"
     };
-  return res.status(401).send(response);
+    return res.status(401).send(response);
+  }
+});
 
 
-}
-})
-
-
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-POST REQUEST
- to add a search query to the accounts' search history
+  [POST] /search
+  {
+    token: <string>
+    search: <string>
+  }
+  --------- Response ---------
+  {
+    message: <string>,
+    // TODO: Fix response
+  }
+
+  Description: to add a search query to the accounts' search history
 */
 api.post("/search", async(req,res)=>{
 
@@ -291,20 +329,22 @@ api.post("/search", async(req,res)=>{
 
 }
 
-})
+});
 
 
-
-
-
-
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-GET REQUEST
+  [GET] /search?term=<string>
+  --------- Response ---------
+  {
+    message: <string>,
+    // TODO: Fix response
+  }
 
+  Description: returns a search result from a shazam search query
 */
-
 api.get("/search",async(req,res)=>{
 
   let searchterm = req.query.term;
@@ -325,17 +365,26 @@ api.get("/search",async(req,res)=>{
     return res.send(error)
   });
 
-})
+});
+
+
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+
 
 /*
-  POST: CREATE A NEW ACCOUNT
-
-  Payload format:
+  [POST] /createaccount
   {
-    "username": <string>
-    "email":<string>
-    "password":<string>
+    username: <string>
+    email: <string>
+    password: <string>
   }
+  --------- Response ---------
+  {
+    message: <string>,
+    // TODO: Fix response
+  }
+
+  Description: create a new account
 */
 api.post("/createaccount", async(req,res)=>{
 
@@ -367,15 +416,20 @@ api.post("/createaccount", async(req,res)=>{
   };
   return res.send(response);
 
-})
+});
 
 
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-  GET: CHECK IF ACCOUNT EXISTS USING USERNAME
+  [GET] /search/<username: string>
+  --------- Response ---------
+  {
+    message: <string>
+  }
 
-  Params: username
+  Description:
 */
 api.get("/accounts/username/:username", async(req,res)=>{
 
@@ -399,17 +453,20 @@ api.get("/accounts/username/:username", async(req,res)=>{
     "message":"not found"
   };
   return res.status(404).send(response);
-
-})
-
+});
 
 
+// +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 
 /*
-  GET: CHECK IF ACCOUNT EXISTS USING EMAIL
+  [GET] /search/<email: string>
+  --------- Response ---------
+  {
+    message: <string>
+  }
 
-  Params: email
+  Description:
 */
 api.get("/accounts/email/:email", async(req,res)=>{
 
@@ -434,15 +491,15 @@ api.get("/accounts/email/:email", async(req,res)=>{
   };
   return res.status(404).send(response);
 
-})
+});
 
 
 
-
-
-
-
-// ----------------------------------------------- ENDPOINTS -----------------------------------------------
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                                         *
+ *                                             MAIN DRIVER CODE                                            *
+ *                                                                                                         *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 
 //sets the port requests will be recieved at, and listens for requests
 const PORT = 3000;
