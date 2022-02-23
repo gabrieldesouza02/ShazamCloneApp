@@ -259,7 +259,7 @@ api.get("/search/history", async(req,res)=>{
 
 
 /*
-  [POST] /search
+  [POST] /account/search
   {
     token: <string>
     search: <string>
@@ -272,7 +272,7 @@ api.get("/search/history", async(req,res)=>{
 
   Description: to add a search query to the accounts' search history
 */
-api.post("/search", async(req,res)=>{
+api.post("/account/search", async(req,res)=>{
 
   let users = users_db.get("user_list").value();
   let searchTerm = req.body.search;
@@ -349,18 +349,26 @@ api.get("/search",async(req,res)=>{
 
   let searchterm = req.query.term;
 
+  let result;
+
   var options = {
     method: 'GET',
     url: 'https://shazam.p.rapidapi.com/search',
-    params: {term: searchterm, locale: 'en-US', offset: '0', limit: '5'},
+    params: {term: searchterm, locale: 'en-US', offset: '0', limit: '1'},
     headers: {
       'x-rapidapi-host': 'shazam.p.rapidapi.com',
       'x-rapidapi-key': secureInfo.key
     }
   };
+
+
   
   axios.request(options).then(function (response) {
-    return res.send(response.data);
+
+    result = {title:response.data.tracks.hits[0].track.title,
+              artist:response.data.tracks.hits[0].track.subtitle};
+              console.log(result);
+    return res.send(result);
   }).catch(function (error) {
     return res.send(error)
   });

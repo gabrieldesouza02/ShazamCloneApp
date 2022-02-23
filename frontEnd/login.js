@@ -52,7 +52,6 @@ async function logIn(){
 
     //Save JWT in local storage
     localStorage.scaToken = result.token;
-    window.location.replace('index.html');   //Redirect to user
 
 
 
