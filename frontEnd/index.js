@@ -1,6 +1,8 @@
 
 let url = "http://localhost:3000/";
 
+result;
+
 async function getSearch(){
     let searchTerm = document.getElementById("search").value;
    
@@ -12,6 +14,9 @@ async function getSearch(){
     });
 
      let result = await response.json();
+
+     document.getElementById("artistSearch").innerHTML = result.artist;
+     document.getElementById("titleSearch").innerHTML = result.title;
     
     console.log(result);
     //console.log(result.artist);

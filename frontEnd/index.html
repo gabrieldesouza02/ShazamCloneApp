@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Shazam</title>
     <script src="index.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
@@ -23,8 +24,13 @@
         </div>
     </nav>
     <form><input class="form-control search" type="search" id="search"></form>
-    <input type="button" value="SEARCH" onclick="getSearch()">
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <input type="button" id="search" value="SEARCH" onclick="getSearch()">
+    
+
+    <div>
+        <h1 id="artistSearch"></h1>
+        <h1 id="titleSearch"></h1>
+    </div>
 </body>
 
 </html>
